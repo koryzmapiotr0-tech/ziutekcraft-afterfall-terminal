@@ -1,26 +1,23 @@
 -- ZiutekCraft Afterfall // Room Sign: SKLAD
--- Install as startup.lua on a dedicated Advanced Computer.
+-- Optimized for Advanced Monitor wall 2 wide x 1 high.
 
 local monitor = peripheral.find("monitor")
 if not monitor then
   term.setTextColor(colors.red)
   print("[AFTERFALL] Nie znaleziono monitora.")
-  print("Podlacz monitor do komputera i uruchom ponownie.")
   return
 end
 
 monitor.setTextScale(1)
-monitor.setBackgroundColor(colors.black)
-monitor.setTextColor(colors.white)
-monitor.clear()
 monitor.setCursorBlink(false)
 
 local function center(y, text, fg, bg)
   local w = monitor.getSize()
   monitor.setBackgroundColor(bg or colors.black)
   monitor.setTextColor(fg or colors.white)
-  monitor.setCursorPos(math.max(1, math.floor((w - #text) / 2) + 1), y)
-  monitor.write(text)
+  local x = math.max(1, math.floor((w - #text) / 2) + 1)
+  monitor.setCursorPos(x, y)
+  monitor.write(text:sub(1, w))
 end
 
 local function draw()
@@ -28,24 +25,27 @@ local function draw()
   monitor.setBackgroundColor(colors.black)
   monitor.clear()
 
+  -- Orange technical stripe at the top.
   monitor.setBackgroundColor(colors.orange)
-  monitor.setTextColor(colors.black)
   monitor.setCursorPos(1, 1)
   monitor.write(string.rep(" ", w))
-  center(1, " AFTERFALL // SEKTOR LOGISTYCZNY ", colors.black, colors.orange)
+  center(1, "AFTERFALL", colors.black, colors.orange)
 
-  center(math.max(3, math.floor(h / 2) - 1), "SKLAD", colors.orange)
-  center(math.max(4, math.floor(h / 2) + 1), "POMIESZCZENIE MAGAZYNOWE", colors.lightGray)
+  -- Main room name. Designed to stay readable on a 2x1 display.
+  local mainY = math.max(2, math.floor((h + 1) / 2))
+  center(mainY, "SKLAD", colors.orange, colors.black)
 
-  if h >= 7 then
-    center(h - 2, "DOSTEP: PERSONEL OCALALYCH", colors.gray)
+  if h >= 4 then
+    center(mainY + 1, "SEKTOR LOGISTYCZNY", colors.lightGray, colors.black)
   end
 
-  monitor.setBackgroundColor(colors.gray)
-  monitor.setTextColor(colors.black)
-  monitor.setCursorPos(1, h)
-  monitor.write(string.rep(" ", w))
-  center(h, " ZIUTEKCRAFT // AFTERFALL ", colors.black, colors.gray)
+  -- Bottom status stripe.
+  if h >= 3 then
+    monitor.setBackgroundColor(colors.gray)
+    monitor.setCursorPos(1, h)
+    monitor.write(string.rep(" ", w))
+    center(h, "MAGAZYN", colors.black, colors.gray)
+  end
 end
 
 draw()
