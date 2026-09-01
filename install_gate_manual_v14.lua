@@ -1,5 +1,5 @@
--- ZiutekCraft Afterfall // installer Brama G-01 MANUAL v1.4
-local URL="https://raw.githubusercontent.com/koryzmapiotr0-tech/ziutekcraft-afterfall-terminal/main/gate_controller_manual_v14.lua"
+-- ZiutekCraft Afterfall // installer Brama G-01 MANUAL v1.6
+local URL="https://raw.githubusercontent.com/koryzmapiotr0-tech/ziutekcraft-afterfall-terminal/main/gate_controller_manual_v16.lua"
 local TARGET="startup.lua"
 
 local function msg(t,c)
@@ -8,8 +8,8 @@ local function msg(t,c)
 end
 
 term.clear();term.setCursorPos(1,1)
-msg("AFTERFALL // BRAMA G-01 MANUAL v1.4",colors.orange)
-msg("Bez Player Detectora // 2+ monitory // auto-close 10 s",colors.white)
+msg("AFTERFALL // BRAMA G-01 MANUAL v1.6",colors.orange)
+msg("2+ monitory // OTWORZ + ZAMKNIJ // auto-close 10 s",colors.white)
 print("")
 
 if not http then
@@ -35,11 +35,7 @@ if fs.exists(TARGET) then
   msg("Stary startup -> startup.lua.backup",colors.gray)
 end
 
--- Kasujemy stary zapamietany stan po wersjach z Player Detectorem.
-if fs.exists("/afterfall_gate_state.txt") then
-  fs.delete("/afterfall_gate_state.txt")
-  msg("Stary stan bramy usuniety.",colors.gray)
-end
+if fs.exists("/afterfall_gate_state.txt") then fs.delete("/afterfall_gate_state.txt") end
 
 local f=fs.open(TARGET,"w")
 if not f then
@@ -49,9 +45,11 @@ end
 f.write(content);f.close()
 
 print("")
-msg("STEROWNIK MANUAL v1.4 ZAINSTALOWANY",colors.lime)
-msg("Dotyk ekranu = otwarcie",colors.lightGray)
-msg("Po pelnym otwarciu: zamkniecie za 10 s",colors.lightGray)
+msg("STEROWNIK MANUAL v1.6 ZAINSTALOWANY",colors.lime)
+msg("Zielony: OTWORZ",colors.lightGray)
+msg("Czerwony: ZAMKNIJ",colors.lightGray)
+msg("Po otwarciu: auto-zamkniecie za 10 s",colors.lightGray)
+msg("Failsafe: wymusi zamkniecie przy bledzie Create",colors.lightGray)
 msg("Player Detector NIE jest uzywany",colors.lightGray)
 msg("Restart...",colors.gray)
 sleep(1)
