@@ -1,21 +1,18 @@
 -- ZiutekCraft Afterfall // Room Sign: SKLAD
--- Safe version for Advanced Monitor wall 2 wide x 1 high.
+-- Robust version for Advanced Monitor wall 2 wide x 1 high.
+-- Waits for monitor after server/chunk restart and reconnects automatically.
 
-local monitor = peripheral.find("monitor")
+local monitor = nil
 
-if monitor == nil then
-  print("Nie znaleziono monitora")
-  return
+local function findMonitor()
+  monitor = peripheral.find("monitor")
+  return monitor ~= nil
 end
 
-monitor.setTextScale(1)
-monitor.setBackgroundColor(colors.black)
-monitor.setTextColor(colors.white)
-monitor.clear()
-
 local function centerText(y, text, fg, bg)
-  local w, h = monitor.getSize()
+  if not monitor then return end
 
+  local w, h = monitor.getSize()
   if y < 1 then y = 1 end
   if y > h then y = h end
 
@@ -34,35 +31,74 @@ local function centerText(y, text, fg, bg)
 end
 
 local function draw()
-  local w, h = monitor.getSize()
+  if not monitor then return end
 
-  monitor.setBackgroundColor(colors.black)
-  monitor.clear()
+  local ok = pcall(function()
+    monitor.setTextScale(1)
+    local w, h = monitor.getSize()
 
-  -- Gorny pasek
-  monitor.setBackgroundColor(colors.orange)
-  monitor.setCursorPos(1, 1)
-  monitor.write(string.rep(" ", w))
-  centerText(1, "AFTERFALL", colors.black, colors.orange)
+    monitor.setBackgroundColor(colors.black)
+    monitor.setTextColor(colors.white)
+    monitor.clear()
 
-  -- Glowny napis
-  local middle = math.ceil(h / 2)
-  centerText(middle, "SKLAD", colors.orange, colors.black)
-
-  -- Dolny pasek tylko jesli ekran ma co najmniej 3 linie tekstu
-  if h >= 3 then
-    monitor.setBackgroundColor(colors.gray)
-    monitor.setCursorPos(1, h)
+    -- Gorny pasek
+    monitor.setBackgroundColor(colors.orange)
+    monitor.setCursorPos(1, 1)
     monitor.write(string.rep(" ", w))
-    centerText(h, "MAGAZYN", colors.black, colors.gray)
+    centerText(1, "AFTERFALL", colors.black, colors.orange)
+
+    -- Glowny napis
+    local middle = math.ceil(h / 2)
+    centerText(middle, "SKLAD", colors.orange, colors.black)
+
+    -- Dolny pasek
+    if h >= 3 then
+      monitor.setBackgroundColor(colors.gray)
+      monitor.setCursorPos(1, h)
+      monitor.write(string.rep(" ", w))
+      centerText(h, "MAGAZYN", colors.black, colors.gray)
+    end
+  end)
+
+  if not ok then
+    monitor = nil
   end
 end
 
-draw()
+local function connectAndDraw()
+  while not findMonitor() do
+    term.clear()
+    term.setCursorPos(1, 1)
+    term.setTextColor(colors.orange)
+    print("AFTERFALL // SKLAD")
+    term.setTextColor(colors.white)
+    print("Czekam na monitor...")
+
+    local event = os.pullEvent()
+    if event ~= "peripheral" and event ~= "peripheral_detach" then
+      -- Ignore unrelated events while waiting.
+    end
+  end
+
+  term.clear()
+  term.setCursorPos(1, 1)
+  term.setTextColor(colors.lime)
+  print("SKLAD // monitor polaczony")
+  draw()
+end
+
+connectAndDraw()
 
 while true do
   local event = os.pullEvent()
+
   if event == "monitor_resize" then
     draw()
+  elseif event == "peripheral" or event == "peripheral_detach" then
+    if not findMonitor() then
+      connectAndDraw()
+    else
+      draw()
+    end
   end
 end
