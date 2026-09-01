@@ -66,18 +66,19 @@ local function draw()
 end
 
 local function connectAndDraw()
-  while not findMonitor() do
-    term.clear()
-    term.setCursorPos(1, 1)
-    term.setTextColor(colors.orange)
-    print("AFTERFALL // SKLAD")
-    term.setTextColor(colors.white)
-    print("Czekam na monitor...")
+  local shownWaiting = false
 
-    local event = os.pullEvent()
-    if event ~= "peripheral" and event ~= "peripheral_detach" then
-      -- Ignore unrelated events while waiting.
+  while not findMonitor() do
+    if not shownWaiting then
+      term.clear()
+      term.setCursorPos(1, 1)
+      term.setTextColor(colors.orange)
+      print("AFTERFALL // SKLAD")
+      term.setTextColor(colors.white)
+      print("Czekam na monitor...")
+      shownWaiting = true
     end
+    sleep(1)
   end
 
   term.clear()
