@@ -1,4 +1,4 @@
--- ZiutekCraft Afterfall // Spawn Welcome Terminal 3x3 v1.1
+-- ZiutekCraft Afterfall // Spawn Welcome Terminal 3x3 v1.2
 -- Jeden staly ekran. Bez stron, bez klikania.
 -- Po restarcie komputera uruchamiany przez startup.lua.
 
@@ -91,6 +91,18 @@ local function paragraph(y, text, fg, prefix)
     return y
 end
 
+local function section(y, title, text)
+    if y > H then return y end
+    put(2, y, title, colors.orange)
+    y = y + 1
+    y = paragraph(y, text, colors.white, "> ")
+    if y <= H then
+        hr(y, "-", colors.gray)
+        y = y + 1
+    end
+    return y
+end
+
 local function draw()
     if not monitor then return end
     monitor.setBackgroundColor(colors.black)
@@ -103,28 +115,26 @@ local function draw()
     hr(4, "=", colors.gray)
 
     local y = 5
-    put(2, y, "1. ROZEJRZYJ SIE", colors.orange); y = y + 1
-    y = paragraph(y,
-        "Obejrzyj spawn i zapoznaj sie z terminalami, sklepami, punktem medycznym, zbrojownia oraz budynkami bazy.",
-        colors.white, "> ")
 
-    if y <= H then hr(y, "-", colors.gray); y = y + 1 end
+    y = section(y,
+        "1. ROZEJRZYJ SIE",
+        "Obejrzyj spawn i zapoznaj sie z terminalami, sklepami, punktem medycznym, zbrojownia oraz budynkami bazy.")
 
-    if y <= H then
-        put(2, y, "2. JAK WYJSC ZE SPAWNA", colors.orange); y = y + 1
-        y = paragraph(y,
-            "Kieruj sie do glownej bramy w murze. Na panelu przy bramie nacisnij OTWORZ BRAME, przejdz przez wjazd i idz dalej. Brama zamknie sie automatycznie po kilku sekundach. Po wyjsciu opuszczasz strefe chroniona.",
-            colors.white, "> ")
-    end
+    y = section(y,
+        "2. JAK WYJSC ZE SPAWNA",
+        "Kieruj sie do glownej bramy w murze. Na panelu przy bramie nacisnij OTWORZ BRAME i przejdz. Brama zamknie sie automatycznie po kilku sekundach. Po wyjsciu opuszczasz strefe chroniona.")
 
-    if y <= H then hr(y, "-", colors.gray); y = y + 1 end
+    y = section(y,
+        "3. PRZED WYJSCIEM: RADAR R-01",
+        "Sprawdz liczbe kontaktow, zasieg radaru, typ celu i jego predkosc. Jesli radar pokazuje ruch w poblizu, przygotuj sie przed opuszczeniem murow.")
 
-    if y <= H then
-        put(2, y, "3. PRZED WYJSCIEM: RADAR R-01", colors.orange); y = y + 1
-        y = paragraph(y,
-            "Sprawdz liczbe kontaktow, zasieg radaru, typ celu i jego predkosc. Jesli radar pokazuje ruch w poblizu, przygotuj sie przed opuszczeniem murow.",
-            colors.white, "> ")
-    end
+    y = section(y,
+        "4. PRZYGOTUJ SIE DO WYPRAWY",
+        "Uzupelnij jedzenie, leczenie i podstawowy ekwipunek. Sprawdz sklepy oraz terminale bazy zanim ruszysz poza mury.")
+
+    y = section(y,
+        "5. POZA MURAMI",
+        "Poza spawnem konczy sie bezpieczna strefa. Pilnuj otoczenia, nie ignoruj sygnalow radaru i wracaj do bazy, gdy sytuacja robi sie niebezpieczna.")
 
     if H >= 3 then
         fill(H - 1, colors.gray)
@@ -147,7 +157,7 @@ end
 term.clear()
 term.setCursorPos(1, 1)
 term.setTextColor(colors.orange)
-print("AFTERFALL // WELCOME TERMINAL 3x3")
+print("AFTERFALL // WELCOME TERMINAL 3x3 v1.2")
 term.setTextColor(colors.lime)
 print("ONLINE: " .. tostring(monitorName))
 term.setTextColor(colors.white)
