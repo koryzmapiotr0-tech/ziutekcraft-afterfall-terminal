@@ -1,4 +1,4 @@
--- ZiutekCraft Afterfall // Spawn Welcome Terminal 3x3 v1.0
+-- ZiutekCraft Afterfall // Spawn Welcome Terminal 3x3 v1.1
 -- Jeden staly ekran. Bez stron, bez klikania.
 -- Po restarcie komputera uruchamiany przez startup.lua.
 
@@ -113,7 +113,7 @@ local function draw()
     if y <= H then
         put(2, y, "2. JAK WYJSC ZE SPAWNA", colors.orange); y = y + 1
         y = paragraph(y,
-            "Kieruj sie do glownej bramy w murze. Podejdz do niej - system wykryje gracza i otworzy przejazd. Po wyjsciu opuszczasz strefe chroniona.",
+            "Kieruj sie do glownej bramy w murze. Na panelu przy bramie nacisnij OTWORZ BRAME, przejdz przez wjazd i idz dalej. Brama zamknie sie automatycznie po kilku sekundach. Po wyjsciu opuszczasz strefe chroniona.",
             colors.white, "> ")
     end
 
