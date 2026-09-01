@@ -1,7 +1,7 @@
--- ZiutekCraft Afterfall // Brama G-01 MANUAL v1.4
+-- ZiutekCraft Afterfall // Brama G-01 MANUAL v1.5
 -- BEZ Player Detectora.
--- 2+ monitory, dotyk = otwarcie, automatyczne zamkniecie 10 s po pelnym otwarciu.
--- Sterowanie jest NIEBLOKUJACE: brak while isRunning(), wiec program nie moze zawisnac na Create.
+-- 2+ monitory, osobne przyciski OTWORZ / ZAMKNIJ, auto-close 10 s.
+-- Sterowanie NIEBLOKUJACE: brak while isRunning().
 
 local TRAVEL = 7
 local HOLD_OPEN = 10
@@ -10,7 +10,7 @@ local CLOSE_MOD = 2
 local POLL = 0.10
 local DISCOVER_EVERY = 1.0
 local MONITOR_SCALE = 0.5
-local MOTION_TIMEOUT = 20 -- awaryjny timeout tylko diagnostyczny
+local MOTION_TIMEOUT = 20
 
 local CONFIG_FILE = "/afterfall_gate_reverse.txt"
 
@@ -142,23 +142,21 @@ local function startMove(target)
 end
 
 local function forceOpen()
-  -- Nie opieramy sie na zapamietanym stanie. Gdy brama jest zamknieta lub w bledzie,
-  -- wysylamy prawdziwa komende OPEN. Gdy juz jest otwarta, tylko resetujemy licznik.
   if gateState=="open" then
     closeAt=now()+HOLD_OPEN*1000
     setFlash("LICZNIK = 10 SEK",1.2)
     beep(18,"hat")
     return true
   end
-  if gateState=="opening" then
-    setFlash("JUZ SIE OTWIERA",1)
-    return true
-  end
   return startMove("open")
 end
 
 local function forceClose()
-  if gateState=="closing" then return true end
+  closeAt=nil
+  if gateState=="closed" then
+    setFlash("JUZ ZAMKNIETA",1)
+    return true
+  end
   return startMove("closed")
 end
 
@@ -188,8 +186,6 @@ local function updateMotion()
     return
   end
 
-  -- Dajemy Create chwile na rozpoczecie instrukcji, aby pojedynczy false tuz po move()
-  -- nie zostal uznany za zakonczony ruch.
   if elapsed>=300 and not running then
     local target=motionTarget
     finishMotion(target)
@@ -219,6 +215,21 @@ local function stateLabel()
   return "BLAD",colors.red
 end
 
+local function buttonBounds(W,H)
+  local top=math.max(7,math.floor(H*0.32))
+  local bottom=math.max(top+5,H-5)
+  local gap=1
+  local innerW=math.max(8,W-4-gap)
+  local leftW=math.floor(innerW/2)
+  local rightW=innerW-leftW
+  local lx1=2
+  local lx2=lx1+leftW-1
+  local rx1=lx2+gap+1
+  local rx2=rx1+rightW-1
+  if rx2>W-1 then rx2=W-1 end
+  return lx1,lx2,rx1,rx2,top,bottom
+end
+
 local function drawOne(entry)
   local m=entry.p
   local ok,W,H=pcall(m.getSize)
@@ -235,6 +246,13 @@ local function drawOne(entry)
     x=math.max(1,math.floor(x)); if x>W then return end
     m.setCursorPos(x,y);m.setTextColor(fg or colors.white);m.setBackgroundColor(bg or colors.black)
     m.write(tostring(t):sub(1,W-x+1))
+  end
+
+  local function centerIn(x1,x2,y,t,fg,bg)
+    t=tostring(t)
+    local width=x2-x1+1
+    local x=x1+math.max(0,math.floor((width-#t)/2))
+    put(x,y,t,fg,bg)
   end
 
   local function center(y,t,fg,bg)
@@ -259,30 +277,24 @@ local function drawOne(entry)
   if sec then center(5,"AUTO CLOSE: "..sec.." s",colors.yellow)
   else center(5,"BEZ PLAYER DETECTORA",colors.lightGray) end
 
-  local top=math.max(7,math.floor(H*0.28))
-  local bottom=math.max(top+5,H-5)
-  local bg
-  if not gearshift or gateState=="error" then bg=colors.gray
-  elseif gateState=="closed" then bg=colors.green
-  elseif gateState=="open" then bg=colors.orange
-  else bg=colors.yellow end
+  local lx1,lx2,rx1,rx2,top,bottom=buttonBounds(W,H)
+  local openBg=gearshift and colors.green or colors.gray
+  local closeBg=gearshift and colors.red or colors.gray
 
-  for y=top,bottom do fill(2,y,math.max(1,W-2),bg) end
+  for y=top,bottom do
+    fill(lx1,y,lx2-lx1+1,openBg)
+    fill(rx1,y,rx2-rx1+1,closeBg)
+  end
+
   local cy=math.floor((top+bottom)/2)
-
-  if not gearshift then
-    center(cy-1,"STEROWANIE OFFLINE",colors.white,bg)
-    center(cy+1,"BRAK GEARSHIFT",colors.white,bg)
-  elseif gateState=="closed" or gateState=="error" then
-    center(cy-1,"DOTKNIJ EKRAN",colors.black,bg)
-    center(cy+1,"OTWORZ BRAME",colors.black,bg)
-  elseif gateState=="opening" then
-    center(cy,"OTWIERANIE...",colors.black,bg)
-  elseif gateState=="closing" then
-    center(cy,"ZAMYKANIE...",colors.black,bg)
+  if gearshift then
+    centerIn(lx1,lx2,cy-1,"OTWORZ",colors.black,openBg)
+    centerIn(lx1,lx2,cy+1,"BRAME",colors.black,openBg)
+    centerIn(rx1,rx2,cy-1,"ZAMKNIJ",colors.white,closeBg)
+    centerIn(rx1,rx2,cy+1,"BRAME",colors.white,closeBg)
   else
-    center(cy-1,"BRAMA OTWARTA",colors.black,bg)
-    center(cy+1,"DOTKNIJ = +10 SEK",colors.black,bg)
+    centerIn(lx1,lx2,cy,"OFFLINE",colors.white,openBg)
+    centerIn(rx1,rx2,cy,"OFFLINE",colors.white,closeBg)
   end
 
   if lastMoveError then
@@ -290,7 +302,7 @@ local function drawOne(entry)
   end
 
   fill(1,H-2,W,colors.gray)
-  center(H-2," 2+ EKRANY // MANUAL CONTROL ",colors.black,colors.gray)
+  center(H-2," OTWORZ  |  ZAMKNIJ ",colors.black,colors.gray)
   center(H,"UWAGA // RUCH BRAMY",colors.orange)
 end
 
@@ -298,9 +310,27 @@ local function drawAll()
   for _,entry in ipairs(monitors) do pcall(drawOne,entry) end
 end
 
+local function handleTouch(side,x,y)
+  for _,entry in ipairs(monitors) do
+    if entry.name==side then
+      local ok,W,H=pcall(entry.p.getSize)
+      if not ok then return end
+      local lx1,lx2,rx1,rx2,top,bottom=buttonBounds(W,H)
+      if y>=top and y<=bottom then
+        if x>=lx1 and x<=lx2 then
+          forceOpen()
+        elseif x>=rx1 and x<=rx2 then
+          forceClose()
+        end
+      end
+      return
+    end
+  end
+end
+
 local function redrawTerminal()
   term.clear();term.setCursorPos(1,1)
-  term.setTextColor(colors.orange);print("AFTERFALL // BRAMA G-01 MANUAL v1.4")
+  term.setTextColor(colors.orange);print("AFTERFALL // BRAMA G-01 MANUAL v1.5")
   term.setTextColor(colors.white)
   print("MONITORY: "..#monitors)
   for i,e in ipairs(monitors) do print("  "..i..": "..e.name) end
@@ -317,7 +347,7 @@ local function redrawTerminal()
   end
   print("")
   term.setTextColor(colors.lightGray)
-  print("DOTYK dowolnego monitora = OTWORZ / +10 s")
+  print("Monitor: zielony OTWORZ | czerwony ZAMKNIJ")
   print("O = OPEN | C = CLOSE | R = reverse | Q = stop")
   term.setTextColor(colors.white)
 end
@@ -341,7 +371,7 @@ while true do
     timer=os.startTimer(POLL)
 
   elseif e[1]=="monitor_touch" then
-    forceOpen()
+    handleTouch(e[2],e[3],e[4])
     redrawTerminal();drawAll()
 
   elseif e[1]=="key" then
