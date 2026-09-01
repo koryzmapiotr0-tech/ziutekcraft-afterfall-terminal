@@ -105,7 +105,7 @@ local function draw()
     local y = 5
     put(2, y, "1. ROZEJRZYJ SIE", colors.orange); y = y + 1
     y = paragraph(y,
-        "Obejrzyj spawn i zapoznaj sie z terminalami, sklepami, punktem medyczznym, zbrojownia oraz budynkami bazy.",
+        "Obejrzyj spawn i zapoznaj sie z terminalami, sklepami, punktem medycznym, zbrojownia oraz budynkami bazy.",
         colors.white, "> ")
 
     if y <= H then hr(y, "-", colors.gray); y = y + 1 end
@@ -126,7 +126,6 @@ local function draw()
             colors.white, "> ")
     end
 
-    -- Stala stopka, o ile ekran ma wystarczajaco wysokosci.
     if H >= 3 then
         fill(H - 1, colors.gray)
         center(H - 1, "PRZETRWAJ // ODBUDUJ // ODKRYWAJ", colors.black, colors.gray)
